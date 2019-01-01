@@ -6,8 +6,8 @@
 
 #include <eosiolib/asset.hpp>
 #include <eosiolib/eosio.hpp>
-#include <eosiolib/symbol.hpp>
-
+//#include <eosiolib/symbol.hpp>
+#include <eosiolib/transaction.hpp>
 #include <string>
 
 namespace eosiosystem {
@@ -19,34 +19,41 @@ namespace eosio {
    using std::string;
 
    class token : public contract {
+     const uint64_t          sec_for_ref  = 3*24*3600; //3 days
+
       public:
          token( account_name self ):contract(self){}
 
+
+         [[eosio::action]]
          void create( account_name issuer,
                       asset        maximum_supply);
+         [[eosio::action]]
          void update( account_name issuer,
                       asset        maximum_supply);
-         void issue( account_name to, asset quantity, string memo );
-         void claim( account_name owner, symbol_type sym );
-         void recover( account_name owner, symbol_type sym );
+         [[eosio::action]] void issue( account_name to, asset quantity, string memo );
+         [[eosio::action]] void claim( account_name owner, symbol_type sym );
+         [[eosio::action]] void recover( account_name owner, symbol_type sym );
+         [[eosio::action]]
          void transfer( account_name from,
                         account_name to,
                         asset        quantity,
                         string       memo );
-
+        [[eosio::action]] void stake (account_name owner, asset quantity);    //stake LLG
+        [[eosio::action]] void unstake (account_name owner, asset quantity);  //unstake LLG
+        [[eosio::action]] void refund (account_name owner, symbol_type sym);
 
          inline asset get_supply( symbol_name sym )const;
-
          inline asset get_balance( account_name owner, symbol_name sym )const;
 
       private:
-         struct account {
+         struct [[eosio::table]] account {
             asset    balance;
             bool     claimed = false;
             uint64_t primary_key()const { return balance.symbol.name(); }
          };
 
-         struct currency_stats {
+         struct [[eosio::table]] currency_stats {
             asset          supply;
             asset          max_supply;
             account_name   issuer;
@@ -54,8 +61,22 @@ namespace eosio {
             uint64_t primary_key()const { return supply.symbol.name(); }
          };
 
+         struct [[eosio::table]] stake_details {
+           asset quantity;
+           uint64_t updated_on;
+           uint64_t primary_key()const { return quantity.symbol.name(); }
+         };
+
+         struct [[eosio::table]] refund_details {
+           asset quantity;
+           uint64_t updated_on;
+           uint64_t primary_key()const { return quantity.symbol.name(); }
+         };
+
          typedef eosio::multi_index<N(accounts), account> accounts;
          typedef eosio::multi_index<N(stat), currency_stats> stats;
+         typedef eosio::multi_index<N(stake), stake_details> staking;
+         typedef eosio::multi_index<N(refund), refund_details> refunding;
 
          void sub_balance( account_name owner, asset value );
          void add_balance( account_name owner, asset value, account_name ram_payer, bool claimed );
