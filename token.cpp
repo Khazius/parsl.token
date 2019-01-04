@@ -114,6 +114,31 @@ void token::transfer( account_name from,
     }
 }
 
+void token::signup( account_name owner, symbol_type sym ) {
+  eosio_assert(false, "signups are currently disabled");
+  require_auth( owner );
+
+  eosio_assert( sym.is_valid(), "invalid symbol" );
+  auto sym_name = sym.name();
+
+  stats statstable( _self, sym_name );
+  const auto& st = statstable.get( sym_name, "symbol does not exist" );
+  eosio_assert( st.supply.symbol == sym, "symbol precision mismatch" );
+
+  //fail if you already have a balance
+  accounts owner_acnts( _self, owner );
+  auto owned = owner_acnts.find( sym_name );
+  eosio_assert(owned == owner_acnts.end(), "you cannot signup if you have a balance");
+  add_balance( owner, asset(0,sym), owner, true );
+
+  //increment the counter, fail if counter reached
+  signups signup_sgt(_self,_self);
+  st_signups signup_data = signup_sgt.get_or_default(st_signups{0});
+  eosio_assert(signup_data.count < 20000, "maximum signups have been reached");
+  signup_data.count += 1;
+  signup_sgt.set(signup_data,_self);
+}
+
 void token::claim( account_name owner, symbol_type sym ) {
   do_claim(owner,sym,owner);
 }
@@ -168,117 +193,117 @@ void token::recover( account_name owner, symbol_type sym ) {
 
 void token::stake(account_name owner, asset quantity)
 {
-  require_auth(owner);
-  auto sym = quantity.symbol;
-  eosio_assert(sym.is_valid(), "invalid symbol name");
-  eosio_assert(quantity.amount > 0, "must specify positive quantity");
-
-  //we allow any token on this contract to be staked individually
-  accounts from_acnts(_self, owner);
-  const auto &from = from_acnts.get(sym.name(), "no balance object found");
-
-  //find staked + refunding balance
-  uint64_t unavailable = 0;
-
-  staking owner_stake(_self, owner);
-  auto stk = owner_stake.find(sym.name());
-  if (stk != owner_stake.end())
-  {
-    unavailable += stk->quantity.amount;
-  }
-
-  refunding owner_refund(_self, owner);
-  auto ref = owner_refund.find(sym.name());
-  if (ref != owner_refund.end())
-  {
-    unavailable += ref->quantity.amount;
-  }
-
-  //confirm the transfer is less than liquid-stake-refunding
-  eosio_assert(from.balance.amount - unavailable >= quantity.amount, "overdrawn balance");
-
-  //create the stake record
-  if (stk == owner_stake.end())
-  {
-    //brand new stake
-    owner_stake.emplace(owner, [&](auto &a) {
-      a.quantity = quantity;
-      a.updated_on = now();
-    });
-  }
-  else
-  {
-    //has an existing stake
-    owner_stake.modify(stk, 0, [&](auto &a) {
-      a.quantity += quantity;
-      a.updated_on = now();
-    });
-  }
+  // require_auth(owner);
+  // auto sym = quantity.symbol;
+  // eosio_assert(sym.is_valid(), "invalid symbol name");
+  // eosio_assert(quantity.amount > 0, "must specify positive quantity");
+  //
+  // //we allow any token on this contract to be staked individually
+  // accounts from_acnts(_self, owner);
+  // const auto &from = from_acnts.get(sym.name(), "no balance object found");
+  //
+  // //find staked + refunding balance
+  // uint64_t unavailable = 0;
+  //
+  // staking owner_stake(_self, owner);
+  // auto stk = owner_stake.find(sym.name());
+  // if (stk != owner_stake.end())
+  // {
+  //   unavailable += stk->quantity.amount;
+  // }
+  //
+  // refunding owner_refund(_self, owner);
+  // auto ref = owner_refund.find(sym.name());
+  // if (ref != owner_refund.end())
+  // {
+  //   unavailable += ref->quantity.amount;
+  // }
+  //
+  // //confirm the transfer is less than liquid-stake-refunding
+  // eosio_assert(from.balance.amount - unavailable >= quantity.amount, "overdrawn balance");
+  //
+  // //create the stake record
+  // if (stk == owner_stake.end())
+  // {
+  //   //brand new stake
+  //   owner_stake.emplace(owner, [&](auto &a) {
+  //     a.quantity = quantity;
+  //     a.updated_on = now();
+  //   });
+  // }
+  // else
+  // {
+  //   //has an existing stake
+  //   owner_stake.modify(stk, 0, [&](auto &a) {
+  //     a.quantity += quantity;
+  //     a.updated_on = now();
+  //   });
+  // }
 }
 
 void token::unstake(account_name owner, asset quantity)
 {
-  require_auth(owner);
-  auto sym = quantity.symbol;
-  eosio_assert(sym.is_valid(), "invalid symbol name");
-  eosio_assert(quantity.amount > 0, "must specify positive quantity");
-
-  accounts from_acnts(_self, owner);
-  const auto &from = from_acnts.get(sym.name(), "no balance object found");
-
-  //get the current stake
-  staking owner_stake(_self, owner);
-  auto stk = owner_stake.find(sym.name());
-  eosio_assert(stk != owner_stake.end(), "you have no staked balance");
-  eosio_assert(quantity.amount <= stk->quantity.amount, "overdrawn balance");
-
-  //get the refunding table
-  refunding owner_refund(_self, owner);
-  auto ref = owner_refund.find(sym.name());
-
-  //update refunding table
-  if (ref == owner_refund.end())
-  {
-    //brand new refund
-    owner_refund.emplace(owner, [&](auto &a) {
-      a.quantity = quantity;
-      a.updated_on = now();
-    });
-  }
-  else
-  {
-    owner_refund.modify(ref, 0, [&](auto &a) {
-      a.quantity += quantity;
-      a.updated_on = now();
-    });
-  }
-
-
-  if(quantity.amount < stk->quantity.amount) {
-    //update the stake
-    owner_stake.modify(stk, 0, [&](auto &a) {
-      a.quantity -= quantity;
-      a.updated_on = now();
-    });
-  } else {
-    //remove the stake
-    owner_stake.erase(stk);
-  }
-
-  //send deferred refund action
-  eosio::transaction out;
-  out.actions.emplace_back(permission_level{_self, N(refunder)}, _self, N(refund), owner);
-  out.delay_sec = sec_for_ref;
-  cancel_deferred(owner); // TODO: Remove this line when replacing deferred trxs is fixed
-  out.send(owner, owner, true);
+  // require_auth(owner);
+  // auto sym = quantity.symbol;
+  // eosio_assert(sym.is_valid(), "invalid symbol name");
+  // eosio_assert(quantity.amount > 0, "must specify positive quantity");
+  //
+  // accounts from_acnts(_self, owner);
+  // const auto &from = from_acnts.get(sym.name(), "no balance object found");
+  //
+  // //get the current stake
+  // staking owner_stake(_self, owner);
+  // auto stk = owner_stake.find(sym.name());
+  // eosio_assert(stk != owner_stake.end(), "you have no staked balance");
+  // eosio_assert(quantity.amount <= stk->quantity.amount, "overdrawn balance");
+  //
+  // //get the refunding table
+  // refunding owner_refund(_self, owner);
+  // auto ref = owner_refund.find(sym.name());
+  //
+  // //update refunding table
+  // if (ref == owner_refund.end())
+  // {
+  //   //brand new refund
+  //   owner_refund.emplace(owner, [&](auto &a) {
+  //     a.quantity = quantity;
+  //     a.updated_on = now();
+  //   });
+  // }
+  // else
+  // {
+  //   owner_refund.modify(ref, 0, [&](auto &a) {
+  //     a.quantity += quantity;
+  //     a.updated_on = now();
+  //   });
+  // }
+  //
+  //
+  // if(quantity.amount < stk->quantity.amount) {
+  //   //update the stake
+  //   owner_stake.modify(stk, 0, [&](auto &a) {
+  //     a.quantity -= quantity;
+  //     a.updated_on = now();
+  //   });
+  // } else {
+  //   //remove the stake
+  //   owner_stake.erase(stk);
+  // }
+  //
+  // //send deferred refund action
+  // eosio::transaction out;
+  // out.actions.emplace_back(permission_level{_self, N(refunder)}, _self, N(refund), owner);
+  // out.delay_sec = sec_for_ref;
+  // cancel_deferred(owner); // TODO: Remove this line when replacing deferred trxs is fixed
+  // out.send(owner, owner, true);
 }
 
 void token::refund(account_name owner, symbol_type sym ) {
-  eosio_assert( sym.is_valid(), "invalid symbol name" );
-  refunding owner_refund(_self, owner);
-  const auto &ref = owner_refund.get(sym.name(), "no refunding entry found");
-  eosio_assert(ref.updated_on + sec_for_ref <= now(), "refund not yet available - you must wait 3 days from last unstake");
-  owner_refund.erase(ref);
+  // eosio_assert( sym.is_valid(), "invalid symbol name" );
+  // refunding owner_refund(_self, owner);
+  // const auto &ref = owner_refund.get(sym.name(), "no refunding entry found");
+  // eosio_assert(ref.updated_on + sec_for_ref <= now(), "refund not yet available - you must wait 3 days from last unstake");
+  // owner_refund.erase(ref);
 }
 
 void token::sub_balance( account_name owner, asset value ) {
@@ -332,4 +357,4 @@ void token::add_balance( account_name owner, asset value, account_name ram_payer
 
 } /// namespace eosio
 
-EOSIO_ABI( eosio::token, (create)(update)(issue)(transfer)(claim)(recover)(stake)(unstake)(refund) )
+EOSIO_ABI( eosio::token, (create)(update)(issue)(transfer)(claim)(recover)(stake)(unstake)(refund)(signup) )

@@ -6,6 +6,7 @@
 
 #include <eosiolib/asset.hpp>
 #include <eosiolib/eosio.hpp>
+#include <eosiolib/singleton.hpp>
 //#include <eosiolib/symbol.hpp>
 #include <eosiolib/transaction.hpp>
 #include <string>
@@ -42,7 +43,7 @@ namespace eosio {
         [[eosio::action]] void stake (account_name owner, asset quantity);    //stake LLG
         [[eosio::action]] void unstake (account_name owner, asset quantity);  //unstake LLG
         [[eosio::action]] void refund (account_name owner, symbol_type sym);
-
+        void signup( account_name owner, symbol_type sym );
          inline asset get_supply( symbol_name sym )const;
          inline asset get_balance( account_name owner, symbol_name sym )const;
 
@@ -73,10 +74,15 @@ namespace eosio {
            uint64_t primary_key()const { return quantity.symbol.name(); }
          };
 
+         struct st_signups {
+           uint64_t count;
+         };
+
          typedef eosio::multi_index<N(accounts), account> accounts;
          typedef eosio::multi_index<N(stat), currency_stats> stats;
          typedef eosio::multi_index<N(stake), stake_details> staking;
          typedef eosio::multi_index<N(refund), refund_details> refunding;
+         typedef eosio::singleton<N(signups), st_signups> signups;
 
          void sub_balance( account_name owner, asset value );
          void add_balance( account_name owner, asset value, account_name ram_payer, bool claimed );

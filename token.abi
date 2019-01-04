@@ -199,6 +199,16 @@
                     "type": "asset"
                 }
             ]
+        },
+        {
+          "name": "signups",
+          "base": "",
+          "fields": [
+            {
+              "name": "count",
+              "type": "uint64"
+            }
+          ]
         }
     ],
     "types": [],
@@ -227,6 +237,11 @@
             "name": "refund",
             "type": "refund",
             "ricardian_contract": ""
+        },
+        {
+          "name": "signup",
+          "type": "claim",
+          "ricardian_contract": ""
         },
         {
             "name": "stake",
@@ -277,6 +292,11 @@
             "index_type": "i64",
             "key_names": [],
             "key_types": []
+        },
+        {
+          "name": "signups",
+          "type": "signups",
+          "index_type": "i64",
         }
     ],
     "ricardian_clauses": [],
