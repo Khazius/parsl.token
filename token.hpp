@@ -20,7 +20,7 @@ namespace eosio {
    using std::string;
 
    class token : public contract {
-     const uint64_t          sec_for_ref  = 3*24*3600; //3 days
+     const uint64_t          sec_for_ref  = 7*24*3600; //7 days
 
       public:
          token( account_name self ):contract(self){}
