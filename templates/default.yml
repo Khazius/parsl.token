@@ -1,0 +1,72 @@
+#
+# Deployment of the azarus challenge & token contracts
+#
+#
+env: dev
+nodeos_endpoint: "http://127.0.0.1:7777"
+wallet:
+  #type: keosd
+  #url: "http://127.0.0.1:5555"
+  type: file
+  keys:
+    eosio:
+      private: 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+    master:
+      private: 5JpipCm4gnAZfcEDfqu1dEVh4LpCsFRLnvK2ZrZehePBjPTRfJx
+ 
+accounts:
+  user1:
+    reset: true
+    permissions:
+      owner: 
+        type: key
+        value: master
+      active:
+        type: key
+        value: master
+        parent: owner
+  user2:
+    reset: true
+    permissions:
+      owner: 
+        type: key
+        value: master
+      active:
+        type: key
+        value: master
+        parent: owner      
+  parslseed123:
+    reset: true
+    permissions:
+      owner: 
+        type: key
+        value: master
+      active:
+        type: key
+        value: master
+        parent: owner
+      issuer: 
+        type: account
+        value: parslseed123@eosio.code
+        parent: active
+        authorize:
+          - token::transfer
+      refund: 
+        type: account
+        value: parslseed123@eosio.code
+        parent: active
+        authorize:
+          - token::refund    
+
+contracts:
+  token:
+    upgrade: true
+    contract_name: token
+    account: parslseed123
+    permission: owner
+    post_actions: ~
+    # js calls to setup contract
+    verify_actions: ~
+    # js calls to verify contract
+
+test: ~
