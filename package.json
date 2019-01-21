@@ -19,6 +19,7 @@
   "homepage": "https://github.com/azarusio/aza-eos#readme",
   "dependencies": {
     "assert": "^1.4.1",
+    "chai": "^4.2.0",
     "eosjs": "^20.0.0-beta3",
     "folder-hash": "^2.1.2",
     "mocha": "^5.2.0",

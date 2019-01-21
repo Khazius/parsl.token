@@ -46,11 +46,17 @@ accounts:
         value: master
         parent: owner
       issuer: 
-        type: key
-        value: master
+        type: account
+        value: parslseed123@eosio.code
         parent: active
         authorize:
           - token::transfer
+      refund: 
+        type: account
+        value: parslseed123@eosio.code
+        parent: active
+        authorize:
+          - token::refund    
 
 contracts:
   token:
