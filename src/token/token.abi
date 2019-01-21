@@ -1,6 +1,6 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Jan  1 21:17:11 2019",
-    "version": "eosio::abi/1.0",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Mon Jan 21 15:34:12 2019",
+    "version": "eosio::abi/1.1",
     "structs": [
         {
             "name": "account",
@@ -199,16 +199,6 @@
                     "type": "asset"
                 }
             ]
-        },
-        {
-          "name": "signups",
-          "base": "",
-          "fields": [
-            {
-              "name": "count",
-              "type": "uint64"
-            }
-          ]
         }
     ],
     "types": [],
@@ -237,11 +227,6 @@
             "name": "refund",
             "type": "refund",
             "ricardian_contract": ""
-        },
-        {
-          "name": "signup",
-          "type": "claim",
-          "ricardian_contract": ""
         },
         {
             "name": "stake",
@@ -273,13 +258,6 @@
             "key_types": []
         },
         {
-            "name": "stat",
-            "type": "currency_stats",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
             "name": "refund",
             "type": "refund_details",
             "index_type": "i64",
@@ -294,11 +272,14 @@
             "key_types": []
         },
         {
-          "name": "signups",
-          "type": "signups",
-          "index_type": "i64",
+            "name": "stat",
+            "type": "currency_stats",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
         }
     ],
     "ricardian_clauses": [],
+    "variants": [],
     "abi_extensions": []
 }

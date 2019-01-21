@@ -1,0 +1,7 @@
+
+    beforeEach(function() {
+      global.params = JSON.parse('{"env":"dev","nodeos_endpoint":"http://127.0.0.1:7777","wallet":{"type":"file","keys":{"eosio":{"private":"5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","public":"EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"},"master":{"private":"5JpipCm4gnAZfcEDfqu1dEVh4LpCsFRLnvK2ZrZehePBjPTRfJx","public":"EOS6ZBnFEvj2uxxcoxbqeZjDq8kvHqYen7LtP7sP6jL3B5mtESmF6"}}},"accounts":{"user1":{"reset":true,"permissions":{"owner":{"type":"key","value":"master"},"active":{"type":"key","value":"master","parent":"owner","updated":true}}},"user2":{"reset":true,"permissions":{"owner":{"type":"key","value":"master"},"active":{"type":"key","value":"master","parent":"owner","updated":true}}},"parslseed123":{"reset":true,"permissions":{"owner":{"type":"key","value":"master"},"active":{"type":"key","value":"master","parent":"owner","updated":true},"issuer":{"type":"key","value":"master","parent":"active","authorize":["token::transfer"],"updated":true}}}},"contracts":{"token":{"upgrade":true,"contract_name":"token","account":"parslseed123","permission":"owner","post_actions":null,"verify_actions":null}},"test":null,"root_path":"/mnt/c/Users/Khaz/Documents/Projects/parsl.token"}');
+      global.EOSContractHelper = require("../helper/eoscontracthelper")
+      global.EOSContract = new EOSContractHelper(global.params)
+    });
+    
