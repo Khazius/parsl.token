@@ -21,7 +21,7 @@ function eosMonger(p){
       await eoshelper.processAccounts()
 
       console.log("\n\x1b[4m%s\x1b[0m", "STEP3: compile contracts")
-      //await compiler.compile();
+      await compiler.compile();
 
       console.log("\n\x1b[4m%s\x1b[0m", "STEP4: deploy contracts")
       await eoshelper.deployContracts()

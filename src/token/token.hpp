@@ -32,10 +32,15 @@ namespace eosio {
          
          ACTION recover( name owner, const symbol& sym );
          
-         ACTION transfer( name from,
-                        name to,
-                        asset        quantity,
-                        string       memo );
+         ACTION transfer(  name  from,
+                           name  to,
+                           asset        quantity,
+                           string       memo );
+
+         ACTION rewarddrop(name  from,
+                           name  to,
+                           asset        quantity,
+                           string       memo );               
          
          ACTION stake (name owner, asset quantity);
          

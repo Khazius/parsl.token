@@ -87,20 +87,20 @@ describe('Token contract', function() {
     };
     it('user1@active should be able to stake tokens', async function() {
       //start before
-      const r1 = await global.EOSContract.getTableScope(
-        'token', 
-        'stake',
-        'user1'
-      );
+        const r1 = await global.EOSContract.getTableScope(
+          'token', 
+          'stake',
+          'user1'
+        );
 
-      const r2 = await global.EOSContract.getTableScope(
-        'token', 
-        'refund',
-        'user1'
-      );
+        const r2 = await global.EOSContract.getTableScope(
+          'token', 
+          'refund',
+          'user1'
+        );
 
-      tokens.stake = Number(r1.rows[0].quantity.split(" ")[0]);
-      tokens.refund = Number(r2.rows[0].quantity.split(" ")[0]);
+        tokens.stake = Number(r1.rows[0] ? r1.rows[0].quantity.split(" ")[0] : 0);
+        tokens.refund = Number(r2.rows[0] ? r2.rows[0].quantity.split(" ")[0] : 0);
       //end before
 
       const r = await global.EOSContract.sendAction(
@@ -150,6 +150,51 @@ describe('Token contract', function() {
         'user1'
       );
       expect(r2.rows[0].quantity).to.equal(`${Number(tokens.refund + 1000).toFixed(4)} SEED`);
+    });
+  });  
+  describe('Reward Drop', function() {
+    let tokens = {
+      total: 0,
+      stake: 0,
+      refund: 0,
+    };
+    it('parslseed123@active should be able to issue tokens to self', async function() {
+      //start before
+        const r1 = await global.EOSContract.getTableScope(
+          'token', 
+          'stake',
+          'user3'
+        );
+
+        tokens.stake = Number(r1.rows[0] ?  r1.rows[0].quantity.split(" ")[0] : 0);
+      //end before
+
+      const r = await global.EOSContract.sendAction(
+        'token', 
+        'issue', 
+        {to: "parslseed123", quantity: "10000.0000 SEED", memo: "User3"}, 
+        "parslseed123@active", 
+        global.EOSContract.getPrivateKey("parslseed123@active")
+      );
+      expect(r.processed.action_traces[0]).to.have.property("trx_id");
+    });
+    it('parslseed123@active should be able to rewarddrop tokens to user3', async function() {
+      const r = await global.EOSContract.sendAction(
+        'token', 
+        'rewarddrop', 
+        {from:"parslseed123", to: "user3", quantity: "10000.0000 SEED", memo: "User3"}, 
+        "parslseed123@active", 
+        global.EOSContract.getPrivateKey("parslseed123@active")
+      );
+      expect(r.processed.action_traces[0]).to.have.property("trx_id");
+    });
+    it('user3@active should have fully staked balance', async function() {
+      const r1 = await global.EOSContract.getTableScope(
+        'token', 
+        'stake',
+        'user3'
+      );
+      expect(r1.rows[0].quantity).to.equal(`${Number(tokens.stake + 10000).toFixed(4)} SEED`);
     });
   });
   

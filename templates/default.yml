@@ -34,7 +34,17 @@ accounts:
       active:
         type: key
         value: master
-        parent: owner      
+        parent: owner  
+  user3:
+    reset: true
+    permissions:
+      owner: 
+        type: key
+        value: master
+      active:
+        type: key
+        value: master
+        parent: owner             
   parslseed123:
     reset: true
     permissions:

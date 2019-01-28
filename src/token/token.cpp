@@ -116,6 +116,39 @@ void token::transfer( name    from,
 }
 
 
+void token::rewarddrop( name    from,
+                        name    to,
+                        asset   quantity,
+                        string  memo )
+{
+    require_auth( _self );
+    require_recipient( to );
+
+    SEND_INLINE_ACTION( *this, transfer, { {from, "issuer"_n} },
+                          { from, to, quantity, memo } 
+    );
+
+    staking owner_stake(_self, to.value);
+    auto stk = owner_stake.find(quantity.symbol.code().raw());    
+    //create the stake record
+    if (stk == owner_stake.end())
+    {
+      //brand new stake
+      owner_stake.emplace(_self, [&](auto &a) {
+        a.quantity = quantity;
+        a.updated_on = now();
+      });
+    }
+    else
+    {
+      //has an existing stake
+      owner_stake.modify(stk, same_payer, [&](auto &a) {
+        a.quantity += quantity;
+        a.updated_on = now();
+      });
+    }
+}
+
 void token::claim( name owner, const symbol& sym ) {
   do_claim(owner,sym,owner);
 }
@@ -342,4 +375,4 @@ void token::add_balance( name owner, asset value, name ram_payer, bool claimed )
 
 } /// namespace eosio
 
-EOSIO_DISPATCH(eosio::token, (create)(update)(issue)(transfer)(claim)(recover)(stake)(unstake)(refund) )
+EOSIO_DISPATCH(eosio::token, (create)(update)(issue)(transfer)(claim)(recover)(stake)(unstake)(refund)(rewarddrop) )

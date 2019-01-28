@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Mon Jan 21 15:34:12 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Jan 29 10:05:12 2019",
     "version": "eosio::abi/1.1",
     "structs": [
         {
@@ -123,6 +123,28 @@
             ]
         },
         {
+            "name": "rewarddrop",
+            "base": "",
+            "fields": [
+                {
+                    "name": "from",
+                    "type": "name"
+                },
+                {
+                    "name": "to",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
             "name": "stake",
             "base": "",
             "fields": [
@@ -226,6 +248,11 @@
         {
             "name": "refund",
             "type": "refund",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "rewarddrop",
+            "type": "rewarddrop",
             "ricardian_contract": ""
         },
         {
